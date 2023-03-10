@@ -5,7 +5,7 @@ from pygame.math import Vector2
 pygame.mixer.pre_init(44100,-16,2,512)
 pygame.init()
 
-
+mouse_pressed = pygame.mouse.get_pressed()[0]
 width = 600
 length = 800
 #Sets window size and creates display window object
@@ -14,8 +14,7 @@ screen = pygame.display.set_mode((width,length))
 clock = pygame.time.Clock()
 #custom event
 SCREEN_UPDATE = pygame.USEREVENT
-#Trigger screen update every 150 ms
-pygame.time.set_timer(SCREEN_UPDATE, 150)
+
 class MAIN:
     def __init__(self):
         #Set cursor to middle of screen with crosshair and disable the cursor
@@ -27,17 +26,32 @@ class MAIN:
         self.player.player1_rect.bottomleft = (width*0.05, length)
         self.player.player2_rect.bottomright = (width*0.95, length)
         self.player.crosshair_rect.center = (width*0.5, length*0.5)
+        self.crosshair_angle = 0
     def draw_elements(self):
         self.draw_background()
-        
+        self.draw_foreground()
+
     def draw_background(self):
         screen.fill(self.bg_color_black)
         screen.blit(self.player.player_img, self.player.player1_rect)
         screen.blit(self.player.player_img, self.player.player2_rect)
-        screen.blit(self.player.crosshair_img, self.player.crosshair_rect)
-        self.player.drawLines()
+    
+
+    def draw_foreground(self):
+        pygame.transform.rotate(self.player.crosshair_img, 70)
+        #Reason for keeping original image due to distortion by rotation
+        rotated_image = pygame.transform.rotate(self.player.crosshair_img, self.crosshair_angle)
+        self.crosshair_angle += 1
+        new_rect = rotated_image.get_rect(center = pygame.mouse.get_pos())
+        screen.blit(rotated_image, new_rect)
+        
     def update_crosshair_movement(self):
         self.player.crosshair_rect.center = pygame.mouse.get_pos()
+
+    def update_crosshair_lines(self):
+        if random.randint(0,1) == 0:
+            self.player.drawLines()
+        
 
 class PLAYER:
     def __init__(self):
@@ -60,11 +74,11 @@ while True:
             pygame.quit()
             #actually ends all python processes
             sys.exit()
-        #if event.type == SCREEN_UPDATE:
-            #main_game.update()
         
-    
-    main_game.update_crosshair_movement()
     main_game.draw_elements()
+    main_game.update_crosshair_movement()
+    if pygame.mouse.get_pressed()[0] == True:
+        mouse_pressed = True
+        main_game.update_crosshair_lines()
     pygame.display.update()
     clock.tick(60)
