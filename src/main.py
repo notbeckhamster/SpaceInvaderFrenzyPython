@@ -14,7 +14,50 @@ screen = pygame.display.set_mode((width,length))
 clock = pygame.time.Clock()
 #custom event
 SCREEN_UPDATE = pygame.USEREVENT
+     
+class MONSTER:
+    def __init__(self, image, movespeed, intital_location, direction):
+        self.monster_img = image
+        self.monster_rect = self.monster_img.get_rect()
+        self.movespeed = movespeed
+        self.monster_rect.center = intital_location
+        self.direction = direction
+    def move(self):
+        
+        if (self.monster_rect.left < 0 or self.monster_rect.right > width):
+            
+            self.direction = 1 if self.direction == -1 else -1
+            self.monster_rect.y += self.monster_rect.height
+            self.monster_rect.x += self.direction*(self.movespeed*2)
+        else:
+             self.monster_rect.x += self.direction*(self.movespeed)
 
+class RED(MONSTER):
+    def __init__(self, movespeed, intital_location):
+        super().__init__(pygame.image.load('graphics\\red.png').convert_alpha(), movespeed, intital_location, 1)
+
+    
+
+class BLOCK:
+    def __init__(self, startingPt):
+        self.list = list()
+        for x in range(1,4):
+            self.list.append(RED(5, (startingPt[0]*x, startingPt[1])))
+        count = 1
+        for each_mon in self.list:
+            screen.blit(each_mon.monster_img, each_mon.monster_rect)
+    
+    def moveBlock(self):
+        for x in self.list:
+            x.move()
+
+    def displayMonsters(self):
+        for each_mon in self.list:
+            screen.blit(each_mon.monster_img, each_mon.monster_rect)
+         
+            
+   
+block_test = BLOCK((width*0.1, length*0.1))
 class MAIN:
     def __init__(self):
         #Set cursor to middle of screen with crosshair and disable the cursor
@@ -44,6 +87,8 @@ class MAIN:
         self.crosshair_angle += 1
         new_rect = rotated_image.get_rect(center = pygame.mouse.get_pos())
         screen.blit(rotated_image, new_rect)
+        block_test.moveBlock()
+        block_test.displayMonsters()
         
     def update_crosshair_movement(self):
         self.player.crosshair_rect.center = pygame.mouse.get_pos()
@@ -51,8 +96,7 @@ class MAIN:
     def update_crosshair_lines(self):
         if random.randint(0,1) == 0:
             self.player.drawLines()
-        
-
+      
 class PLAYER:
     def __init__(self):
         self.player_img = pygame.image.load('graphics\\player.png').convert_alpha()
@@ -76,6 +120,7 @@ while True:
             sys.exit()
         
     main_game.draw_elements()
+
     main_game.update_crosshair_movement()
     if pygame.mouse.get_pressed()[0] == True:
         mouse_pressed = True
