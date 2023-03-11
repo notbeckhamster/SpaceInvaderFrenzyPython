@@ -1,6 +1,6 @@
 # SpaceInvaderFrenzyPython
 This is my Space Invader Frenzy Clone in Python using pygame-ce, looking forward to publishing a more 
-polished where I will publish the exe aswell.  https://www.youtube.com/watch?v=EuavtcsJSsI
+polished where I will publish the exe aswell. 
 
 
 Sources/References:
