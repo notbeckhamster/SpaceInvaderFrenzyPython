@@ -15,7 +15,7 @@ clock = pygame.time.Clock()
 #custom event
 SCREEN_UPDATE = pygame.USEREVENT
      
-class MONSTER:
+class MONSTER(object):
     def __init__(self, image, movespeed, intital_location, direction):
         self.monster_img = image
         self.monster_rect = self.monster_img.get_rect()
@@ -23,25 +23,18 @@ class MONSTER:
         self.monster_rect.center = intital_location
         self.direction = direction
     def move(self):
-        
-        if (self.monster_rect.left < 0 or self.monster_rect.right > width):
-            
-            self.direction = 1 if self.direction == -1 else -1
-            self.monster_rect.y += self.monster_rect.height
-            self.monster_rect.x += self.direction*(self.movespeed*2)
-        else:
-             self.monster_rect.x += self.direction*(self.movespeed)
+        self.monster_rect.x += self.direction*(self.movespeed)
 
 class RED(MONSTER):
     def __init__(self, movespeed, intital_location):
-        super().__init__(pygame.image.load('graphics\\red.png').convert_alpha(), movespeed, intital_location, 1)
+        super(RED, self).__init__(pygame.image.load('graphics\\red.png').convert_alpha(), movespeed, intital_location, 1)
 
     
 
 class BLOCK:
     def __init__(self, startingPt):
         self.list = list()
-        for x in range(1,4):
+        for x in range(1,9):
             self.list.append(RED(5, (startingPt[0]*x, startingPt[1])))
         count = 1
         for each_mon in self.list:
@@ -49,7 +42,21 @@ class BLOCK:
     
     def moveBlock(self):
         for x in self.list:
-            x.move()
+            if (x.monster_rect.left < 0 or x.monster_rect.right > width):
+                self.moveDown()
+                return
+        
+        self.moveAcross()
+        
+    def moveDown(self):
+        for curr in self.list:
+            curr.direction = 1 if curr.direction == -1 else -1
+            curr.monster_rect.y += curr.monster_rect.height
+            curr.monster_rect.x += curr.direction*(curr.movespeed*2)
+    def moveAcross(self):
+        for curr in self.list:
+            curr.move()
+    
 
     def displayMonsters(self):
         for each_mon in self.list:
