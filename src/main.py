@@ -13,7 +13,10 @@ screen = pygame.display.set_mode((width,length))
 #Creates clock object
 clock = pygame.time.Clock()
 #custom event
-SCREEN_UPDATE = pygame.USEREVENT
+STARUPDATE = pygame.USEREVENT
+pygame.time.set_timer(STARUPDATE, 1000) 
+
+pygame
 font_path = 'fonts//ARCADECLASSIC.ttf'
 size = int(length*0.1)
 arcade_font = pygame.font.Font(font_path, size)
@@ -27,10 +30,11 @@ class MONSTER(object):
         self.direction = direction
     def move(self):
         self.monster_rect.x += self.direction*(self.movespeed)
-
+    
 class RED(MONSTER):
     def __init__(self, movespeed, intital_location):
         super(RED, self).__init__(pygame.image.load('graphics\\red.png').convert_alpha(), movespeed, intital_location, 1)
+
 
     
 
@@ -61,7 +65,8 @@ class BLOCK:
     def moveAcross(self):
         for curr in self.list:
             curr.move()
-    
+    def remove_monster(self, monster):
+        self.list.remove(monster)
 
     def displayMonsters(self):
         for each_mon in self.list:
@@ -77,7 +82,7 @@ class MAIN:
         self.bg_color_black = (0,0,0)
         self.bg_color_stars = (255,255,255)
         self.player = PLAYER()
-        
+        self.star_list = self.create_star_list()
 
     def draw_elements(self):
         self.draw_background()
@@ -85,8 +90,8 @@ class MAIN:
 
     def draw_background(self):
         screen.fill(self.bg_color_black)
+        self.draw_stars()
         self.player.blit_elements()
-
     
 
     def draw_foreground(self):
@@ -100,7 +105,23 @@ class MAIN:
     def update_crosshair_lines(self):
         if random.randint(0,1) == 0:
             self.player.drawLines()
-      
+    
+    def draw_stars(self):
+        for x in self.star_list:
+            screen.blit(x[0], x[1])
+    def change_stars(self):
+        for x in range(0,3):
+            self.star_list[random.randint(0, self.star_list.__len__()-1)][1].topleft = (random.randint(0,width-size), random.randint(0,length-size))
+        
+    def create_star_list(self):
+        temp_list = []
+        for x in range(0,20):
+          size = random.randint(3,10)
+          temp_surface = pygame.Surface((size,size))
+          temp_surface.fill("white")
+          temp_list.append((temp_surface, temp_surface.get_rect(topleft = (random.randint(0,width-size), random.randint(0,length-size)))))
+        return temp_list
+    
 class PLAYER:
     def __init__(self):
         self.player_img = pygame.image.load('graphics\\player.png').convert_alpha()
@@ -115,6 +136,8 @@ class PLAYER:
         self.protect_color = (255,0,0)
         self.protect_text = arcade_font.render("PROTECT", True, self.protect_color)
         self.protect_text_rect = self.protect_text.get_rect(midbottom = (width/2,self.player1_rect.midbottom[1]))
+        self.protect_line_height_left = (0, self.protect_text_rect.midtop[1]-10)
+        self.protect_line_height_right = (width, self.protect_text_rect.midtop[1]-10)
     def drawLines(self):
 
         pygame.draw.line(screen, "red", self.player1_rect.midtop, self.crosshair_rect.center,5)
@@ -123,6 +146,7 @@ class PLAYER:
         screen.blit(self.player_img, self.player1_rect)
         screen.blit(self.player_img, self.player2_rect)
         screen.blit(self.protect_text, self.protect_text_rect)
+        pygame.draw.line(screen, "red", self.protect_line_height_left, self.protect_line_height_right,5)
     def blit_crosshair(self):
         pygame.transform.rotate(self.crosshair_img, 70)
         #Reason for creating a new rect is that roataion will ruin the original rect
@@ -140,7 +164,13 @@ while True:
             pygame.quit()
             #actually ends all python processes
             sys.exit()
-        
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            for x in block_test.list:
+                if x.monster_rect.collidepoint(pygame.mouse.get_pos()) == True:
+                    block_test.remove_monster(x)
+        if event.type == STARUPDATE:
+            main_game.change_stars()
+
     main_game.draw_elements()
 
     main_game.update_crosshair_movement()
