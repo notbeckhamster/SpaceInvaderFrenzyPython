@@ -164,18 +164,22 @@ while True:
             pygame.quit()
             #actually ends all python processes
             sys.exit()
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            for x in block_test.list:
-                if x.monster_rect.collidepoint(pygame.mouse.get_pos()) == True:
-                    block_test.remove_monster(x)
         if event.type == STARUPDATE:
             main_game.change_stars()
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            mouse_pressed = True
+        if event.type == pygame.MOUSEBUTTONUP:
+            print("hmm")
+            mouse_pressed = False
 
     main_game.draw_elements()
 
     main_game.update_crosshair_movement()
-    if pygame.mouse.get_pressed()[0] == True:
-        mouse_pressed = True
+   
+    if mouse_pressed == True:
+        for x in block_test.list:
+                if x.monster_rect.collidepoint(pygame.mouse.get_pos()) == True:
+                    block_test.remove_monster(x)
         main_game.update_crosshair_lines()
     pygame.display.update()
     clock.tick(60)
