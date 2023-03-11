@@ -32,11 +32,13 @@ class RED(MONSTER):
     
 
 class BLOCK:
-    def __init__(self, startingPt):
+    def __init__(self, startingPt, numPerRow, numOfRow):
         self.list = list()
-        for x in range(1,9):
-            self.list.append(RED(5, (startingPt[0]*x, startingPt[1])))
-        count = 1
+        for y in range(0, numOfRow):
+            for x in range(1,numPerRow+1):
+                self.list.append(RED(5, (startingPt[0]*x, startingPt[1] if self.list.__len__() == 0 else startingPt[1] + y*self.list[0].monster_rect.height)))
+                
+        
         for each_mon in self.list:
             screen.blit(each_mon.monster_img, each_mon.monster_rect)
     
@@ -64,7 +66,7 @@ class BLOCK:
          
             
    
-block_test = BLOCK((width*0.1, length*0.1))
+block_test = BLOCK((width*0.1, length*0.1),5,3)
 class MAIN:
     def __init__(self):
         #Set cursor to middle of screen with crosshair and disable the cursor
