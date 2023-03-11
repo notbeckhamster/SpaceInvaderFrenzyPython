@@ -14,7 +14,10 @@ screen = pygame.display.set_mode((width,length))
 clock = pygame.time.Clock()
 #custom event
 SCREEN_UPDATE = pygame.USEREVENT
-     
+font_path = 'fonts//ARCADECLASSIC.ttf'
+size = int(length*0.1)
+arcade_font = pygame.font.Font(font_path, size)
+
 class MONSTER(object):
     def __init__(self, image, movespeed, intital_location, direction):
         self.monster_img = image
@@ -63,10 +66,9 @@ class BLOCK:
     def displayMonsters(self):
         for each_mon in self.list:
             screen.blit(each_mon.monster_img, each_mon.monster_rect)
-         
-            
-   
+          
 block_test = BLOCK((width*0.1, length*0.1),5,3)
+
 class MAIN:
     def __init__(self):
         #Set cursor to middle of screen with crosshair and disable the cursor
@@ -75,27 +77,20 @@ class MAIN:
         self.bg_color_black = (0,0,0)
         self.bg_color_stars = (255,255,255)
         self.player = PLAYER()
-        self.player.player1_rect.bottomleft = (width*0.05, length)
-        self.player.player2_rect.bottomright = (width*0.95, length)
-        self.player.crosshair_rect.center = (width*0.5, length*0.5)
-        self.crosshair_angle = 0
+        
+
     def draw_elements(self):
         self.draw_background()
         self.draw_foreground()
 
     def draw_background(self):
         screen.fill(self.bg_color_black)
-        screen.blit(self.player.player_img, self.player.player1_rect)
-        screen.blit(self.player.player_img, self.player.player2_rect)
+        self.player.blit_elements()
+
     
 
     def draw_foreground(self):
-        pygame.transform.rotate(self.player.crosshair_img, 70)
-        #Reason for keeping original image due to distortion by rotation
-        rotated_image = pygame.transform.rotate(self.player.crosshair_img, self.crosshair_angle)
-        self.crosshair_angle += 1
-        new_rect = rotated_image.get_rect(center = pygame.mouse.get_pos())
-        screen.blit(rotated_image, new_rect)
+        self.player.blit_crosshair()
         block_test.moveBlock()
         block_test.displayMonsters()
         
@@ -113,10 +108,28 @@ class PLAYER:
         self.player2_rect = self.player_img.get_rect()
         self.crosshair_img = pygame.image.load('graphics\\crosshair.png').convert_alpha()
         self.crosshair_rect = self.crosshair_img.get_rect()
+        self.player1_rect.bottomleft = (width*0.05, length)
+        self.player2_rect.bottomright = (width*0.95, length)
+        self.crosshair_rect.center = (width*0.5, length*0.5)
+        self.crosshair_angle = 0
+        self.protect_color = (255,0,0)
+        self.protect_text = arcade_font.render("PROTECT", True, self.protect_color)
+        self.protect_text_rect = self.protect_text.get_rect(midbottom = (width/2,self.player1_rect.midbottom[1]))
     def drawLines(self):
 
         pygame.draw.line(screen, "red", self.player1_rect.midtop, self.crosshair_rect.center,5)
         pygame.draw.line(screen, "red", self.player2_rect.midtop, self.crosshair_rect.center,5)
+    def blit_elements(self):
+        screen.blit(self.player_img, self.player1_rect)
+        screen.blit(self.player_img, self.player2_rect)
+        screen.blit(self.protect_text, self.protect_text_rect)
+    def blit_crosshair(self):
+        pygame.transform.rotate(self.crosshair_img, 70)
+        #Reason for creating a new rect is that roataion will ruin the original rect
+        rotated_image = pygame.transform.rotate(self.crosshair_img, self.crosshair_angle)
+        self.crosshair_angle += 1
+        new_rect = rotated_image.get_rect(center = pygame.mouse.get_pos())
+        screen.blit(rotated_image, new_rect)
 
 
 main_game = MAIN()
