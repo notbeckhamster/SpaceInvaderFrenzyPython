@@ -5,6 +5,7 @@ from pygame.math import Vector2
 pygame.mixer.pre_init(44100,-16,2,512)
 pygame.init()
 pygame.mixer.init()
+
 machinegun_sound = pygame.mixer.Sound("audio\\machinegun.mp3")
 background_sound = pygame.mixer.Sound("audio\\music.wav")
 death_sound = pygame.mixer.Sound("audio\death.wav")
@@ -15,6 +16,7 @@ width = 600
 length = 800
 #Sets window size and creates display window object
 screen = pygame.display.set_mode((width,length))
+
 #Creates clock object
 clock = pygame.time.Clock()
 #custom event
@@ -106,7 +108,11 @@ class PLAYER:
         #Reason for creating a new rect is that roataion will ruin the original rect
         rotated_image = pygame.transform.rotate(self.crosshair_img, self.crosshair_angle)
         self.crosshair_angle += 1
-        new_rect = rotated_image.get_rect(center = pygame.mouse.get_pos())
+        mousex = pygame.mouse.get_pos()[0]
+        mousey = pygame.mouse.get_pos()[1]
+        mousex = pygame.math.clamp(mousex,0,width) 
+        mousey = pygame.math.clamp(mousey,0,length) 
+        new_rect = rotated_image.get_rect(center = (mousex, mousey))
         screen.blit(rotated_image, new_rect)
   
 class MAIN:
@@ -135,7 +141,11 @@ class MAIN:
         block_test.displayMonsters()
         
     def update_crosshair_movement(self):
-        self.player.crosshair_rect.center = pygame.mouse.get_pos()
+        mousex = pygame.mouse.get_pos()[0]
+        mousey = pygame.mouse.get_pos()[1]
+        mousex = pygame.math.clamp(mousex,0,width) 
+        mousey = pygame.math.clamp(mousey,0,length) 
+        self.player.crosshair_rect.center = (mousex, mousey)
 
     def update_crosshair_lines(self):
         if random.randint(0,1) == 0:
@@ -174,14 +184,18 @@ while True:
         if event.type == pygame.MOUSEBUTTONUP:
             machinegun_sound.stop()
             mouse_pressed = False
-
+    main_game.update_crosshair_movement()
     main_game.draw_elements()
 
-    main_game.update_crosshair_movement()
+    
    
     if mouse_pressed == True:
         for x in block_test.list:
-                if x.monster_rect.collidepoint(pygame.mouse.get_pos()) == True:
+                mousex = pygame.mouse.get_pos()[0]
+                mousey = pygame.mouse.get_pos()[1]
+                mousex = pygame.math.clamp(mousex,0,width) 
+                mousey = pygame.math.clamp(mousey,0,length) 
+                if x.monster_rect.collidepoint((mousex, mousey)) == True:
                     block_test.remove_monster(x)
         main_game.update_crosshair_lines()
     pygame.display.update()
