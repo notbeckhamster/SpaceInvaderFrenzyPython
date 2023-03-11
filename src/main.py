@@ -4,7 +4,12 @@ from pygame.math import Vector2
 #Starts pygame
 pygame.mixer.pre_init(44100,-16,2,512)
 pygame.init()
-
+pygame.mixer.init()
+machinegun_sound = pygame.mixer.Sound("audio\\machinegun.mp3")
+background_sound = pygame.mixer.Sound("audio\\music.wav")
+death_sound = pygame.mixer.Sound("audio\death.wav")
+background_sound.play(loops = -1)
+background_sound.set_volume(0.5)
 mouse_pressed = pygame.mouse.get_pressed()[0]
 width = 600
 length = 800
@@ -15,8 +20,6 @@ clock = pygame.time.Clock()
 #custom event
 STARUPDATE = pygame.USEREVENT
 pygame.time.set_timer(STARUPDATE, 1000) 
-
-pygame
 font_path = 'fonts//ARCADECLASSIC.ttf'
 size = int(length*0.1)
 arcade_font = pygame.font.Font(font_path, size)
@@ -33,10 +36,7 @@ class MONSTER(object):
     
 class RED(MONSTER):
     def __init__(self, movespeed, intital_location):
-        super(RED, self).__init__(pygame.image.load('graphics\\red.png').convert_alpha(), movespeed, intital_location, 1)
-
-
-    
+        super(RED, self).__init__(pygame.image.load('graphics\\red.png').convert_alpha(), movespeed, intital_location, 1)    
 
 class BLOCK:
     def __init__(self, startingPt, numPerRow, numOfRow):
@@ -67,6 +67,8 @@ class BLOCK:
             curr.move()
     def remove_monster(self, monster):
         self.list.remove(monster)
+        death_sound.play()
+
 
     def displayMonsters(self):
         for each_mon in self.list:
@@ -74,6 +76,39 @@ class BLOCK:
           
 block_test = BLOCK((width*0.1, length*0.1),5,3)
 
+class PLAYER:
+    def __init__(self):
+        self.player_img = pygame.image.load('graphics\\player.png').convert_alpha()
+        self.player1_rect = self.player_img.get_rect()
+        self.player2_rect = self.player_img.get_rect()
+        self.crosshair_img = pygame.image.load('graphics\\crosshair.png').convert_alpha()
+        self.crosshair_rect = self.crosshair_img.get_rect()
+        self.player1_rect.bottomleft = (width*0.05, length)
+        self.player2_rect.bottomright = (width*0.95, length)
+        self.crosshair_rect.center = (width*0.5, length*0.5)
+        self.crosshair_angle = 0
+        self.protect_color = (255,0,0)
+        self.protect_text = arcade_font.render("PROTECT", True, self.protect_color)
+        self.protect_text_rect = self.protect_text.get_rect(midbottom = (width/2,self.player1_rect.midbottom[1]))
+        self.protect_line_height_left = (0, self.protect_text_rect.midtop[1]-10)
+        self.protect_line_height_right = (width, self.protect_text_rect.midtop[1]-10)
+    def drawLines(self):
+
+        pygame.draw.line(screen, "red", self.player1_rect.midtop, self.crosshair_rect.center,5)
+        pygame.draw.line(screen, "red", self.player2_rect.midtop, self.crosshair_rect.center,5)
+    def blit_elements(self):
+        screen.blit(self.player_img, self.player1_rect)
+        screen.blit(self.player_img, self.player2_rect)
+        screen.blit(self.protect_text, self.protect_text_rect)
+        pygame.draw.line(screen, "red", self.protect_line_height_left, self.protect_line_height_right,5)
+    def blit_crosshair(self):
+        pygame.transform.rotate(self.crosshair_img, 70)
+        #Reason for creating a new rect is that roataion will ruin the original rect
+        rotated_image = pygame.transform.rotate(self.crosshair_img, self.crosshair_angle)
+        self.crosshair_angle += 1
+        new_rect = rotated_image.get_rect(center = pygame.mouse.get_pos())
+        screen.blit(rotated_image, new_rect)
+  
 class MAIN:
     def __init__(self):
         #Set cursor to middle of screen with crosshair and disable the cursor
@@ -122,39 +157,6 @@ class MAIN:
           temp_list.append((temp_surface, temp_surface.get_rect(topleft = (random.randint(0,width-size), random.randint(0,length-size)))))
         return temp_list
     
-class PLAYER:
-    def __init__(self):
-        self.player_img = pygame.image.load('graphics\\player.png').convert_alpha()
-        self.player1_rect = self.player_img.get_rect()
-        self.player2_rect = self.player_img.get_rect()
-        self.crosshair_img = pygame.image.load('graphics\\crosshair.png').convert_alpha()
-        self.crosshair_rect = self.crosshair_img.get_rect()
-        self.player1_rect.bottomleft = (width*0.05, length)
-        self.player2_rect.bottomright = (width*0.95, length)
-        self.crosshair_rect.center = (width*0.5, length*0.5)
-        self.crosshair_angle = 0
-        self.protect_color = (255,0,0)
-        self.protect_text = arcade_font.render("PROTECT", True, self.protect_color)
-        self.protect_text_rect = self.protect_text.get_rect(midbottom = (width/2,self.player1_rect.midbottom[1]))
-        self.protect_line_height_left = (0, self.protect_text_rect.midtop[1]-10)
-        self.protect_line_height_right = (width, self.protect_text_rect.midtop[1]-10)
-    def drawLines(self):
-
-        pygame.draw.line(screen, "red", self.player1_rect.midtop, self.crosshair_rect.center,5)
-        pygame.draw.line(screen, "red", self.player2_rect.midtop, self.crosshair_rect.center,5)
-    def blit_elements(self):
-        screen.blit(self.player_img, self.player1_rect)
-        screen.blit(self.player_img, self.player2_rect)
-        screen.blit(self.protect_text, self.protect_text_rect)
-        pygame.draw.line(screen, "red", self.protect_line_height_left, self.protect_line_height_right,5)
-    def blit_crosshair(self):
-        pygame.transform.rotate(self.crosshair_img, 70)
-        #Reason for creating a new rect is that roataion will ruin the original rect
-        rotated_image = pygame.transform.rotate(self.crosshair_img, self.crosshair_angle)
-        self.crosshair_angle += 1
-        new_rect = rotated_image.get_rect(center = pygame.mouse.get_pos())
-        screen.blit(rotated_image, new_rect)
-
 
 main_game = MAIN()
 while True:
@@ -168,8 +170,9 @@ while True:
             main_game.change_stars()
         if event.type == pygame.MOUSEBUTTONDOWN:
             mouse_pressed = True
+            machinegun_sound.play()
         if event.type == pygame.MOUSEBUTTONUP:
-            print("hmm")
+            machinegun_sound.stop()
             mouse_pressed = False
 
     main_game.draw_elements()
