@@ -257,7 +257,7 @@ class MAIN:
             self.bomb1.explode()
 
     def check_bomb_enemy_coliision(self):
-        if self.bomb1.exploded == True:
+        if self.bomb1.exploded == True and self.bomb1.finished == False:
             for x in self.block_red.list:
                 if self.bomb1.bomb_rect.colliderect(x.monster_rect) == True:
                     self.block_red.remove_monster(x)
