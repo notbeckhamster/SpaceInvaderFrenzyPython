@@ -10,6 +10,8 @@ pygame.mixer.init()
 machinegun_sound = pygame.mixer.Sound("audio\\machinegun.mp3")
 background_sound = pygame.mixer.Sound("audio\\music.wav")
 death_sound = pygame.mixer.Sound("audio\death.wav")
+bomb_tick = pygame.mixer.Sound("audio\\bombtick.wav")
+bomb_explosion = pygame.mixer.Sound("audio\\bombexplosion.wav")
 background_sound.play(loops = -1)
 background_sound.set_volume(0.5)
 mouse_pressed = pygame.mouse.get_pressed()[0]
@@ -105,6 +107,8 @@ class BOMB:
         self.position_bomb()
         self.radius = self.bomb_rect.height
         self.before_exploded_pos = self.bomb_rect.center
+        self.finished = False
+        bomb_tick.play()
     def position_bomb(self):
         self.bomb_rect.midleft = (0, random.randint(length*0.25, length*0.75))
     def move_bomb(self):
@@ -129,11 +133,16 @@ class BOMB:
         else:
             self.explode()
             screen.blit(self.bomb_surface, self.bomb_rect)
-            self.radius += 1
+            self.radius += 5
+            if self.radius > width/2:
+                self.finished = True
+
     def explode(self):       
         if self.exploded == False:
             self.exploded = True
             self.before_exploded_pos = self.bomb_rect.center
+            bomb_tick.stop()
+            bomb_explosion.play()
         self.bomb_surface = pygame.Surface((self.radius*2, self.radius*2), pygame.SRCALPHA)
         self.bomb_rect = self.bomb_surface.get_rect(center = self.before_exploded_pos)
         pygame.draw.circle(screen, (255,0,0), center = self.bomb_rect.center, radius = self.radius)
@@ -200,13 +209,14 @@ class MAIN:
 
     def draw_foreground(self):
         self.update_crosshair_movement()
-        if (self.bomb1.exploded == True):
+        if self.bomb1.exploded == True:
             self.check_bomb_enemy_coliision()
         self.player.blit_elements()
         self.player.blit_crosshair()
         self.block_red.moveBlock()
         self.block_red.displayMonsters()
-        self.bomb1.update_display_bomb()
+        if self.bomb1.finished == False:
+            self.bomb1.update_display_bomb()
         
     def update_crosshair_movement(self):
         mousex = pygame.mouse.get_pos()[0]
@@ -243,7 +253,7 @@ class MAIN:
         for x in self.block_red.list:
             if x.monster_rect.collidepoint((mousex, mousey)) == True:
                 self.block_red.remove_monster(x)
-        if self.bomb1.bomb_rect.collidepoint(mousex, mousey):
+        if self.bomb1.bomb_rect.collidepoint(mousex, mousey) and self.bomb1.finished == False:
             self.bomb1.explode()
 
     def check_bomb_enemy_coliision(self):
