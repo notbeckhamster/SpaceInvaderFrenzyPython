@@ -27,9 +27,15 @@ clock = pygame.time.Clock()
 STARUPDATE = pygame.event.custom_type()
 GAMEOVER = pygame.event.custom_type()
 GAMERESTART = pygame.event.custom_type()
+BOMBIMAGESWAP = pygame.event.custom_type()
+UFOSPAWN = pygame.event.custom_type()
 GAMEOVER_EVENT = pygame.event.Event(GAMEOVER)
 GAMERESTART_EVENT = pygame.event.Event(GAMERESTART)
+BOMBIMAGESWAP_EVENT = pygame.event.Event(BOMBIMAGESWAP)
+UFOSPAWN_EVENT = pygame.event.Event(UFOSPAWN)
+pygame.time.set_timer(UFOSPAWN, 1000,loops=1)
 pygame.time.set_timer(STARUPDATE, 1000) 
+pygame.time.set_timer(BOMBIMAGESWAP, 100)
 font_path = 'fonts//ARCADECLASSIC.ttf'
 size = int(length*0.1)
 arcade_font = pygame.font.Font(font_path, size)
@@ -49,9 +55,16 @@ class RED(MONSTER):
     def __init__(self, movespeed, intital_location):
         super(RED, self).__init__(pygame.image.load('graphics\\red.png').convert_alpha(), movespeed, intital_location, 1)    
 
-class UFO(MONSTER):
-    def __init__(self, movespeed, intital_location):
-        super(UFO, self).__init__(pygame.image.load('graphics\\red.png').convert_alpha(), movespeed, intital_location, 1)    
+class UFO:
+    def __init__(self):
+        self.ufo_img = pygame.transform.scale(pygame.image.load("graphics\\ufo.png"), (100,40))
+        self.ufo_rect = self.ufo_img.get_rect()
+        self.ufo_rect = (random.randint(0,width), random.randint(0,length))
+   
+    def move(self):
+        self.ufo_rect = (random.randint(0,width), random.randint(0,length)) 
+    def blit(self):
+        screen.blit(self.ufo_img, self.ufo_rect)
 
 class BLOCK:
     def __init__(self, startingPt, numPerRow, numOfRow):
@@ -97,8 +110,9 @@ class BLOCK:
 
 class BOMB:
     def __init__(self):
-        self.img_path = "graphics\\bomb.png"
-        self.bomb_surface = pygame.image.load(self.img_path).convert_alpha()
+        self.bomb_red = pygame.image.load("graphics\\bomb.png").convert_alpha()
+        self.bomb_white = pygame.image.load("graphics\\bombwhite.png").convert_alpha()
+        self.bomb_surface = self.bomb_red
         self.bomb_rect = self.bomb_surface.get_rect()
         self.bomb_dx = 1
         self.bomb_dy = 1
@@ -199,8 +213,10 @@ class MAIN:
         self.star_list = self.create_star_list()
         self.block_red = BLOCK((width*0.1, length*0.1),5,3)
         self.bomb1 = BOMB()
+        self.ufo_active=True
+        self.ufo = UFO()
         points = 0
-        bonus_point = 0
+
     def draw_background(self):
         screen.fill(self.bg_color_black)
         self.draw_stars()
@@ -217,6 +233,9 @@ class MAIN:
         self.block_red.displayMonsters()
         if self.bomb1.finished == False:
             self.bomb1.update_display_bomb()
+        if self.ufo_active == True:
+            self.ufo.blit()
+            
         
     def update_crosshair_movement(self):
         mousex = pygame.mouse.get_pos()[0]
@@ -327,9 +346,17 @@ while True:
             machinegun_sound.stop()
         if event.type == STARUPDATE:
             main_game.change_stars()
+            main_game.ufo.move()
         if event.type == GAMERESTART:
             game_over_bool = False
             main_game = MAIN()
+        if event.type == UFOSPAWN:
+            main_game.ufo_active = True
+        if event.type == BOMBIMAGESWAP:
+            if main_game.bomb1.bomb_surface == main_game.bomb1.bomb_white:
+                main_game.bomb1.bomb_surface = main_game.bomb1.bomb_red
+            else:
+                main_game.bomb1.bomb_surface = main_game.bomb1.bomb_white
         if game_over_bool == False:
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_pressed = True
