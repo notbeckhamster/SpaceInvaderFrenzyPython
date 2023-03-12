@@ -30,7 +30,8 @@ pygame.time.set_timer(STARUPDATE, 1000)
 font_path = 'fonts//ARCADECLASSIC.ttf'
 size = int(length*0.1)
 arcade_font = pygame.font.Font(font_path, size)
-
+points = 0
+bonus_points = 0
 class MONSTER(object):
     def __init__(self, image, movespeed, intital_location, direction):
         self.monster_img = image
@@ -74,8 +75,10 @@ class BLOCK:
         for curr in self.list:
             curr.move()
     def remove_monster(self, monster):
+        global points
         self.list.remove(monster)
         death_sound.play()
+        points+=50
 
 
     def displayMonsters(self):
@@ -181,6 +184,7 @@ class MAIN:
             mousey = pygame.math.clamp(mousey,0,length) 
             if x.monster_rect.collidepoint((mousex, mousey)) == True:
                 self.block_red.remove_monster(x)
+
 class GameOver:
     def __init__(self):
         self.text_color = (255,0,0)
@@ -192,8 +196,6 @@ class GameOver:
             screen.blit(each_pair[0], each_pair[1])
     
     def createList(self):
-        points = 100
-        bonus_points = 15
         text = ["PRESS ANY BUTTON", "TO RESTART", "POINTS ", str(points), "BONUS POINTS ", str(bonus_points), "TOTAL POINTS ", str(points + bonus_points)]
         text_surf_rect_list = []
         count=0
@@ -211,11 +213,15 @@ class ScoreBoard:
         self.text_font = pygame.font.Font(font_path, self.text_size)
         self.list = self.createList()
     def display(self):
+        self.updateScore()
         for each_pair in self.list:
             screen.blit(each_pair[0], each_pair[1])
-    
+    def updateScore(self):
+        total_points = points + bonus_points
+        self.list[1][0] = self.text_font.render(str(total_points), True, self.text_color)
+           
     def createList(self):
-        total_points = 56
+        total_points = points + bonus_points
         text = ["P1", str(total_points)]
         text_surf_rect_list = []
         count=0
