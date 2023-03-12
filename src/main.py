@@ -46,6 +46,10 @@ class RED(MONSTER):
     def __init__(self, movespeed, intital_location):
         super(RED, self).__init__(pygame.image.load('graphics\\red.png').convert_alpha(), movespeed, intital_location, 1)    
 
+class UFO(MONSTER):
+    def __init__(self, movespeed, intital_location):
+        super(UFO, self).__init__(pygame.image.load('graphics\\red.png').convert_alpha(), movespeed, intital_location, 1)    
+
 class BLOCK:
     def __init__(self, startingPt, numPerRow, numOfRow):
         self.list = list()
@@ -88,6 +92,38 @@ class BLOCK:
             if (game_over_bool == False and each_mon.monster_rect.bottom > main_game.player.protect_line_height_left[1]):
                 pygame.event.post(GAMEOVER_EVENT)
 
+class BOMB:
+    def __init__(self):
+        self.img_path = "graphics\\bomb.png"
+        self.bomb_surface = pygame.image.load(self.img_path).convert_alpha()
+        self.bomb_rect = self.bomb_surface.get_rect()
+        self.bomb_dx = 1
+        self.bomb_dy = 1
+        self.speed = 5
+        self.position_bomb()
+    def position_bomb(self):
+        self.bomb_rect.midleft = (0, random.randint(length*0.25, length*0.75))
+    def move_bomb(self):
+        if self.bomb_dx == 1 and self.bomb_rect.right+self.speed > width:
+            self.bomb_dx = -1
+        if self.bomb_dx == -1  and self.bomb_rect.left-self.speed < 0:
+            self.bomb_dx = 1
+        if self.bomb_dy == 1 and self.bomb_rect.bottom+self.speed > length:
+            self.bomb_dy = -1
+        if self.bomb_dy == -1  and self.bomb_rect.top-self.speed < 0:
+            self.bomb_dy = 1
+        curr_pos_x, curr_pos_y = self.bomb_rect.center
+        self.bomb_rect.center=(curr_pos_x + self.bomb_dx*self.speed, curr_pos_y + self.bomb_dy*self.speed)
+    def update_display_bomb(self):
+        self.move_bomb()
+        self.display()
+
+    def display(self):
+        screen.blit(self.bomb_surface, self.bomb_rect)
+        
+            
+        
+        
 
 class PLAYER:
     def __init__(self):
@@ -128,6 +164,7 @@ class PLAYER:
   
 class MAIN:
     def __init__(self):
+        global points, bonus_points
         #Set cursor to middle of screen with crosshair and disable the cursor
         pygame.mouse.set_pos((width*0.5, length*0.5))
         pygame.mouse.set_cursor((8,8),(0,0),(0,0,0,0,0,0,0,0),(0,0,0,0,0,0,0,0))
@@ -136,6 +173,9 @@ class MAIN:
         self.player = PLAYER()
         self.star_list = self.create_star_list()
         self.block_red = BLOCK((width*0.1, length*0.1),5,3)
+        self.bomb1 = BOMB()
+        points = 0
+        bonus_point = 0
     def draw_background(self):
         screen.fill(self.bg_color_black)
         self.draw_stars()
@@ -148,6 +188,7 @@ class MAIN:
         self.player.blit_crosshair()
         self.block_red.moveBlock()
         self.block_red.displayMonsters()
+        self.bomb1.update_display_bomb()
         
     def update_crosshair_movement(self):
         mousex = pygame.mouse.get_pos()[0]
@@ -192,10 +233,12 @@ class GameOver:
         self.text_font = pygame.font.Font(font_path, self.text_size)
         self.list = self.createList()
     def display(self):
+        self.list = self.createList()
         for each_pair in self.list:
             screen.blit(each_pair[0], each_pair[1])
     
     def createList(self):
+        global points, bonus_points
         text = ["PRESS ANY BUTTON", "TO RESTART", "POINTS ", str(points), "BONUS POINTS ", str(bonus_points), "TOTAL POINTS ", str(points + bonus_points)]
         text_surf_rect_list = []
         count=0
@@ -205,6 +248,7 @@ class GameOver:
             count+=1
             text_surf_rect_list.append([self.info, self.info_rect])
         return text_surf_rect_list
+
 
 class ScoreBoard:
     def __init__(self):
