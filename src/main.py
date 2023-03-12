@@ -84,8 +84,7 @@ class BLOCK:
             screen.blit(each_mon.monster_img, each_mon.monster_rect)
             if (game_over_bool == False and each_mon.monster_rect.bottom > main_game.player.protect_line_height_left[1]):
                 pygame.event.post(GAMEOVER_EVENT)
-          
-block_test = BLOCK((width*0.1, length*0.1),5,3)
+
 
 class PLAYER:
     def __init__(self):
@@ -133,7 +132,7 @@ class MAIN:
         self.bg_color_stars = (255,255,255)
         self.player = PLAYER()
         self.star_list = self.create_star_list()
-
+        self.block_red = BLOCK((width*0.1, length*0.1),5,3)
     def draw_background(self):
         screen.fill(self.bg_color_black)
         self.draw_stars()
@@ -143,8 +142,8 @@ class MAIN:
     def draw_foreground(self):
         self.player.blit_elements()
         self.player.blit_crosshair()
-        block_test.moveBlock()
-        block_test.displayMonsters()
+        self.block_red.moveBlock()
+        self.block_red.displayMonsters()
         
     def update_crosshair_movement(self):
         mousex = pygame.mouse.get_pos()[0]
@@ -185,9 +184,9 @@ while True:
         if event.type == GAMEOVER:
             game_over_bool = True
             machinegun_sound.stop()
-        if game_over_bool == False:
-            if event.type == STARUPDATE:
+        if event.type == STARUPDATE:
                 main_game.change_stars()
+        if game_over_bool == False:
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_pressed = True
                 machinegun_sound.play()
@@ -203,13 +202,13 @@ while True:
         main_game.update_crosshair_movement()
         main_game.draw_foreground()
         if mouse_pressed == True:
-            for x in block_test.list:
+            for x in main_game.block_red.list:
                     mousex = pygame.mouse.get_pos()[0]
                     mousey = pygame.mouse.get_pos()[1]
                     mousex = pygame.math.clamp(mousex,0,width) 
                     mousey = pygame.math.clamp(mousey,0,length) 
                     if x.monster_rect.collidepoint((mousex, mousey)) == True:
-                        block_test.remove_monster(x)
+                        main_game.block_red.remove_monster(x)
             main_game.update_crosshair_lines()
 
     
