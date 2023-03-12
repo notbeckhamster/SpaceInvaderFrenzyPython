@@ -16,11 +16,16 @@ width = 600
 length = 800
 #Sets window size and creates display window object
 screen = pygame.display.set_mode((width,length))
-
+pygame.display.set_caption("SpaceInvaderFrenzyPython")
+game_over_bool = False
 #Creates clock object
 clock = pygame.time.Clock()
-#custom event
-STARUPDATE = pygame.USEREVENT
+#custom events
+STARUPDATE = pygame.event.custom_type()
+GAMEOVER = pygame.event.custom_type()
+GAMERESTART = pygame.event.custom_type()
+GAMEOVER_EVENT = pygame.event.Event(GAMEOVER)
+GAMERESTART_EVENT = pygame.event.Event(GAMERESTART)
 pygame.time.set_timer(STARUPDATE, 1000) 
 font_path = 'fonts//ARCADECLASSIC.ttf'
 size = int(length*0.1)
@@ -64,6 +69,7 @@ class BLOCK:
             curr.direction = 1 if curr.direction == -1 else -1
             curr.monster_rect.y += curr.monster_rect.height
             curr.monster_rect.x += curr.direction*(curr.movespeed*2)
+
     def moveAcross(self):
         for curr in self.list:
             curr.move()
@@ -73,8 +79,11 @@ class BLOCK:
 
 
     def displayMonsters(self):
+        global GAMEOVER
         for each_mon in self.list:
             screen.blit(each_mon.monster_img, each_mon.monster_rect)
+            if (game_over_bool == False and each_mon.monster_rect.bottom > main_game.player.protect_line_height_left[1]):
+                pygame.event.post(GAMEOVER_EVENT)
           
 block_test = BLOCK((width*0.1, length*0.1),5,3)
 
@@ -125,17 +134,14 @@ class MAIN:
         self.player = PLAYER()
         self.star_list = self.create_star_list()
 
-    def draw_elements(self):
-        self.draw_background()
-        self.draw_foreground()
-
     def draw_background(self):
         screen.fill(self.bg_color_black)
         self.draw_stars()
-        self.player.blit_elements()
+        
     
 
     def draw_foreground(self):
+        self.player.blit_elements()
         self.player.blit_crosshair()
         block_test.moveBlock()
         block_test.displayMonsters()
@@ -176,27 +182,38 @@ while True:
             pygame.quit()
             #actually ends all python processes
             sys.exit()
-        if event.type == STARUPDATE:
-            main_game.change_stars()
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            mouse_pressed = True
-            machinegun_sound.play()
-        if event.type == pygame.MOUSEBUTTONUP:
+        if event.type == GAMEOVER:
+            game_over_bool = True
             machinegun_sound.stop()
-            mouse_pressed = False
-    main_game.update_crosshair_movement()
-    main_game.draw_elements()
+        if game_over_bool == False:
+            if event.type == STARUPDATE:
+                main_game.change_stars()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_pressed = True
+                machinegun_sound.play()
+            if event.type == pygame.MOUSEBUTTONUP:
+                machinegun_sound.stop()
+                mouse_pressed = False
+        else:
+            if event.type == pygame.KEYDOWN:
+                pygame.event.post(GAMERESTART_EVENT)
+
+    main_game.draw_background()
+    if game_over_bool ==False:
+        main_game.update_crosshair_movement()
+        main_game.draw_foreground()
+        if mouse_pressed == True:
+            for x in block_test.list:
+                    mousex = pygame.mouse.get_pos()[0]
+                    mousey = pygame.mouse.get_pos()[1]
+                    mousex = pygame.math.clamp(mousex,0,width) 
+                    mousey = pygame.math.clamp(mousey,0,length) 
+                    if x.monster_rect.collidepoint((mousex, mousey)) == True:
+                        block_test.remove_monster(x)
+            main_game.update_crosshair_lines()
 
     
    
-    if mouse_pressed == True:
-        for x in block_test.list:
-                mousex = pygame.mouse.get_pos()[0]
-                mousey = pygame.mouse.get_pos()[1]
-                mousex = pygame.math.clamp(mousex,0,width) 
-                mousey = pygame.math.clamp(mousey,0,length) 
-                if x.monster_rect.collidepoint((mousex, mousey)) == True:
-                    block_test.remove_monster(x)
-        main_game.update_crosshair_lines()
+   
     pygame.display.update()
     clock.tick(60)
