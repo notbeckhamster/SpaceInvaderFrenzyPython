@@ -140,6 +140,7 @@ class MAIN:
     
 
     def draw_foreground(self):
+        self.update_crosshair_movement()
         self.player.blit_elements()
         self.player.blit_crosshair()
         self.block_red.moveBlock()
@@ -172,8 +173,62 @@ class MAIN:
           temp_list.append((temp_surface, temp_surface.get_rect(topleft = (random.randint(0,width-size), random.randint(0,length-size)))))
         return temp_list
     
+    def check_collision(self):
+        for x in self.block_red.list:
+            mousex = pygame.mouse.get_pos()[0]
+            mousey = pygame.mouse.get_pos()[1]
+            mousex = pygame.math.clamp(mousex,0,width) 
+            mousey = pygame.math.clamp(mousey,0,length) 
+            if x.monster_rect.collidepoint((mousex, mousey)) == True:
+                self.block_red.remove_monster(x)
+class GameOver:
+    def __init__(self):
+        self.text_color = (255,0,0)
+        self.text_size = int(length*0.05)
+        self.text_font = pygame.font.Font(font_path, self.text_size)
+        self.list = self.createList()
+    def display(self):
+        for each_pair in self.list:
+            screen.blit(each_pair[0], each_pair[1])
+    
+    def createList(self):
+        points = 100
+        bonus_points = 15
+        text = ["PRESS ANY BUTTON", "TO RESTART", "POINTS ", str(points), "BONUS POINTS ", str(bonus_points), "TOTAL POINTS ", str(points + bonus_points)]
+        text_surf_rect_list = []
+        count=0
+        for each_text in text:
+            self.info = self.text_font.render(each_text, True, self.text_color)
+            self.info_rect = self.info.get_rect(midbottom = (width/2,length*0.1 + count*self.info.get_rect().height))
+            count+=1
+            text_surf_rect_list.append([self.info, self.info_rect])
+        return text_surf_rect_list
+
+class ScoreBoard:
+    def __init__(self):
+        self.text_color = (255,0,0)
+        self.text_size = int(length*0.03)
+        self.text_font = pygame.font.Font(font_path, self.text_size)
+        self.list = self.createList()
+    def display(self):
+        for each_pair in self.list:
+            screen.blit(each_pair[0], each_pair[1])
+    
+    def createList(self):
+        total_points = 56
+        text = ["P1", str(total_points)]
+        text_surf_rect_list = []
+        count=0
+        for each_text in text:
+            each_surface = self.text_font.render(each_text, True, self.text_color)
+            each_rect = each_surface.get_rect(topleft = (0, 0 + count*each_surface.get_rect().height))
+            text_surf_rect_list.append([each_surface, each_rect])
+            count+=1
+        return text_surf_rect_list
 
 main_game = MAIN()
+game_over = GameOver()
+score_board = ScoreBoard()
 while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -185,7 +240,10 @@ while True:
             game_over_bool = True
             machinegun_sound.stop()
         if event.type == STARUPDATE:
-                main_game.change_stars()
+            main_game.change_stars()
+        if event.type == GAMERESTART:
+            game_over_bool = False
+            main_game = MAIN()
         if game_over_bool == False:
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_pressed = True
@@ -194,22 +252,20 @@ while True:
                 machinegun_sound.stop()
                 mouse_pressed = False
         else:
-            if event.type == pygame.KEYDOWN:
+            if event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
                 pygame.event.post(GAMERESTART_EVENT)
 
+
     main_game.draw_background()
-    if game_over_bool ==False:
-        main_game.update_crosshair_movement()
+
+    if game_over_bool == False:
         main_game.draw_foreground()
         if mouse_pressed == True:
-            for x in main_game.block_red.list:
-                    mousex = pygame.mouse.get_pos()[0]
-                    mousey = pygame.mouse.get_pos()[1]
-                    mousex = pygame.math.clamp(mousex,0,width) 
-                    mousey = pygame.math.clamp(mousey,0,length) 
-                    if x.monster_rect.collidepoint((mousex, mousey)) == True:
-                        main_game.block_red.remove_monster(x)
+            main_game.check_collision()
             main_game.update_crosshair_lines()
+        score_board.display()
+    else:
+        game_over.display()
 
     
    
