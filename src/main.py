@@ -1,3 +1,4 @@
+#Author Beckham Wilson
 import pygame, sys, random
 from pygame.math import Vector2
 
@@ -100,7 +101,10 @@ class BOMB:
         self.bomb_dx = 1
         self.bomb_dy = 1
         self.speed = 5
+        self.exploded = False
         self.position_bomb()
+        self.radius = self.bomb_rect.height
+        self.before_exploded_pos = self.bomb_rect.center
     def position_bomb(self):
         self.bomb_rect.midleft = (0, random.randint(length*0.25, length*0.75))
     def move_bomb(self):
@@ -115,13 +119,25 @@ class BOMB:
         curr_pos_x, curr_pos_y = self.bomb_rect.center
         self.bomb_rect.center=(curr_pos_x + self.bomb_dx*self.speed, curr_pos_y + self.bomb_dy*self.speed)
     def update_display_bomb(self):
-        self.move_bomb()
+        if self.exploded == False:
+            self.move_bomb()
         self.display()
 
     def display(self):
-        screen.blit(self.bomb_surface, self.bomb_rect)
+        if (self.exploded == False):
+            screen.blit(self.bomb_surface, self.bomb_rect)
+        else:
+            self.explode()
+            screen.blit(self.bomb_surface, self.bomb_rect)
+            self.radius += 1
+    def explode(self):       
+        if self.exploded == False:
+            self.exploded = True
+            self.before_exploded_pos = self.bomb_rect.center
+        self.bomb_surface = pygame.Surface((self.radius*2, self.radius*2), pygame.SRCALPHA)
+        self.bomb_rect = self.bomb_surface.get_rect(center = self.before_exploded_pos)
+        pygame.draw.circle(screen, (255,0,0), center = self.bomb_rect.center, radius = self.radius)
         
-            
         
         
 
@@ -184,6 +200,8 @@ class MAIN:
 
     def draw_foreground(self):
         self.update_crosshair_movement()
+        if (self.bomb1.exploded == True):
+            self.check_bomb_enemy_coliision()
         self.player.blit_elements()
         self.player.blit_crosshair()
         self.block_red.moveBlock()
@@ -218,13 +236,21 @@ class MAIN:
         return temp_list
     
     def check_collision(self):
+        mousex = pygame.mouse.get_pos()[0]
+        mousey = pygame.mouse.get_pos()[1]
+        mousex = pygame.math.clamp(mousex,0,width) 
+        mousey = pygame.math.clamp(mousey,0,length) 
         for x in self.block_red.list:
-            mousex = pygame.mouse.get_pos()[0]
-            mousey = pygame.mouse.get_pos()[1]
-            mousex = pygame.math.clamp(mousex,0,width) 
-            mousey = pygame.math.clamp(mousey,0,length) 
             if x.monster_rect.collidepoint((mousex, mousey)) == True:
                 self.block_red.remove_monster(x)
+        if self.bomb1.bomb_rect.collidepoint(mousex, mousey):
+            self.bomb1.explode()
+
+    def check_bomb_enemy_coliision(self):
+        if self.bomb1.exploded == True:
+            for x in self.block_red.list:
+                if self.bomb1.bomb_rect.colliderect(x.monster_rect) == True:
+                    self.block_red.remove_monster(x)
 
 class GameOver:
     def __init__(self):
