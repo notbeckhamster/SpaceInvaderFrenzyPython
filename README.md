@@ -22,6 +22,8 @@ Source: https://opengameart.org/content/512-sound-effects-8-bit-style
 machinegun.mp3 is by SuperPhat 
 Source: https://pixabay.com/sound-effects/heavymachinegun-6998/
 
+bombtick.wav and bombexposion.wav
+Source: https://mixkit.co/free-sound-effects/
 bomb.png, crosshair.png, ufo.png from (me) notbeckhamster
 Made using: https://pixlr.com/x/ and http://pixelartmaker.com/
 
