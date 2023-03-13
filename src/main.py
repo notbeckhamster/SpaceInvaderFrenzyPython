@@ -59,10 +59,10 @@ class UFO:
     def __init__(self):
         self.ufo_img = pygame.transform.scale(pygame.image.load("graphics\\ufo.png"), (100,40))
         self.ufo_rect = self.ufo_img.get_rect()
-        self.ufo_rect = (random.randint(0,width), random.randint(0,length))
+        self.ufo_rect.center = (random.randint(0,width), random.randint(0,length))
    
     def move(self):
-        self.ufo_rect = (random.randint(0,width), random.randint(0,length)) 
+        self.ufo_rect.center = (random.randint(0,width), random.randint(0,length)) 
     def blit(self):
         screen.blit(self.ufo_img, self.ufo_rect)
 
@@ -274,13 +274,22 @@ class MAIN:
                 self.block_red.remove_monster(x)
         if self.bomb1.bomb_rect.collidepoint(mousex, mousey) and self.bomb1.finished == False:
             self.bomb1.explode()
+        if self.ufo.ufo_rect.collidepoint((mousex, mousey)) == True and self.ufo_active == True:
+            pygame.time.set_timer(UFOSPAWN, 10000,loops=1)
+            self.ufo_active = False
+            death_sound.play()
+            
 
     def check_bomb_enemy_coliision(self):
         if self.bomb1.exploded == True and self.bomb1.finished == False:
             for x in self.block_red.list:
                 if self.bomb1.bomb_rect.colliderect(x.monster_rect) == True:
                     self.block_red.remove_monster(x)
-
+        if self.bomb1.exploded == True and self.bomb1.finished == False:
+            if self.bomb1.bomb_rect.colliderect(self.ufo.ufo_rect):
+                pygame.time.set_timer(UFOSPAWN, 10000,loops=1)
+                self.ufo_active = False
+                death_sound.play()
 class GameOver:
     def __init__(self):
         self.text_color = (255,0,0)
