@@ -29,10 +29,12 @@ GAMEOVER = pygame.event.custom_type()
 GAMERESTART = pygame.event.custom_type()
 BOMBIMAGESWAP = pygame.event.custom_type()
 UFOSPAWN = pygame.event.custom_type()
+UFOSPAWNDEATHIMAGE = pygame.event.custom_type()
 GAMEOVER_EVENT = pygame.event.Event(GAMEOVER)
 GAMERESTART_EVENT = pygame.event.Event(GAMERESTART)
 BOMBIMAGESWAP_EVENT = pygame.event.Event(BOMBIMAGESWAP)
 UFOSPAWN_EVENT = pygame.event.Event(UFOSPAWN)
+UFOSPAWNDEATHIMAGE_EVENT = pygame.event.Event(UFOSPAWNDEATHIMAGE)
 pygame.time.set_timer(UFOSPAWN, 1000,loops=1)
 pygame.time.set_timer(STARUPDATE, 1000) 
 pygame.time.set_timer(BOMBIMAGESWAP, 100)
@@ -58,14 +60,30 @@ class RED(MONSTER):
 class UFO:
     def __init__(self):
         self.ufo_img = pygame.transform.scale(pygame.image.load("graphics\\ufo.png"), (100,40))
+        self.ufo_death = pygame.transform.scale(pygame.image.load("graphics\\ufodeath.png"), (75,90))
         self.ufo_rect = self.ufo_img.get_rect()
+        self.ufo_rect_death = self.ufo_death.get_rect()
         self.ufo_rect.center = (random.randint(0,width), random.randint(0,length))
-   
+        self.ufo_active = True
+        self.ufo_death_display = False
     def move(self):
-        self.ufo_rect.center = (random.randint(0,width), random.randint(0,length)) 
+        if (self.ufo_death_display == False):
+            self.ufo_rect.center = (random.randint(0,width), random.randint(0,length)) 
     def blit(self):
-        screen.blit(self.ufo_img, self.ufo_rect)
-
+        #Recenters the death rect
+        if (self.ufo_death_display == True):
+            screen.blit(self.ufo_death, self.ufo_rect_death)
+        else:
+            screen.blit(self.ufo_img, self.ufo_rect)
+    def ufo_collision(self):
+        global points
+        pygame.time.set_timer(UFOSPAWN, 10000,loops=1)
+        self.ufo_active = False
+        pygame.time.set_timer(UFOSPAWNDEATHIMAGE, 1000, loops=1)
+        self.ufo_rect_death.center = self.ufo_rect.center
+        self.ufo_death_display = True
+        death_sound.play()
+        
 class BLOCK:
     def __init__(self, startingPt, numPerRow, numOfRow):
         self.list = list()
@@ -213,7 +231,6 @@ class MAIN:
         self.star_list = self.create_star_list()
         self.block_red = BLOCK((width*0.1, length*0.1),5,3)
         self.bomb1 = BOMB()
-        self.ufo_active=True
         self.ufo = UFO()
         points = 0
 
@@ -233,9 +250,8 @@ class MAIN:
         self.block_red.displayMonsters()
         if self.bomb1.finished == False:
             self.bomb1.update_display_bomb()
-        if self.ufo_active == True:
+        if self.ufo.ufo_active == True or self.ufo.ufo_death_display == True:
             self.ufo.blit()
-            
         
     def update_crosshair_movement(self):
         mousex = pygame.mouse.get_pos()[0]
@@ -274,10 +290,8 @@ class MAIN:
                 self.block_red.remove_monster(x)
         if self.bomb1.bomb_rect.collidepoint(mousex, mousey) and self.bomb1.finished == False:
             self.bomb1.explode()
-        if self.ufo.ufo_rect.collidepoint((mousex, mousey)) == True and self.ufo_active == True:
-            pygame.time.set_timer(UFOSPAWN, 10000,loops=1)
-            self.ufo_active = False
-            death_sound.play()
+        if self.ufo.ufo_rect.collidepoint((mousex, mousey)) == True and self.ufo.ufo_active == True:
+            self.ufo.ufo_collision()
             
 
     def check_bomb_enemy_coliision(self):
@@ -286,10 +300,8 @@ class MAIN:
                 if self.bomb1.bomb_rect.colliderect(x.monster_rect) == True:
                     self.block_red.remove_monster(x)
         if self.bomb1.exploded == True and self.bomb1.finished == False:
-            if self.bomb1.bomb_rect.colliderect(self.ufo.ufo_rect):
-                pygame.time.set_timer(UFOSPAWN, 10000,loops=1)
-                self.ufo_active = False
-                death_sound.play()
+            if self.bomb1.bomb_rect.colliderect(self.ufo.ufo_rect) and self.ufo.ufo_active == True:
+                self.ufo.ufo_collision()
 class GameOver:
     def __init__(self):
         self.text_color = (255,0,0)
@@ -361,6 +373,8 @@ while True:
             main_game = MAIN()
         if event.type == UFOSPAWN:
             main_game.ufo_active = True
+        if event.type == UFOSPAWNDEATHIMAGE:
+            main_game.ufo.ufo_death_display = False
         if event.type == BOMBIMAGESWAP:
             if main_game.bomb1.bomb_surface == main_game.bomb1.bomb_white:
                 main_game.bomb1.bomb_surface = main_game.bomb1.bomb_red
