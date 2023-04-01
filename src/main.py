@@ -30,11 +30,13 @@ GAMERESTART = pygame.event.custom_type()
 BOMBIMAGESWAP = pygame.event.custom_type()
 UFOSPAWN = pygame.event.custom_type()
 UFOSPAWNDEATHIMAGE = pygame.event.custom_type()
+BLOCKDEAD  = pygame.event.custom_type()
 GAMEOVER_EVENT = pygame.event.Event(GAMEOVER)
 GAMERESTART_EVENT = pygame.event.Event(GAMERESTART)
 BOMBIMAGESWAP_EVENT = pygame.event.Event(BOMBIMAGESWAP)
 UFOSPAWN_EVENT = pygame.event.Event(UFOSPAWN)
 UFOSPAWNDEATHIMAGE_EVENT = pygame.event.Event(UFOSPAWNDEATHIMAGE)
+BLOCKDEAD_EVENT = pygame.event.Event(BLOCKDEAD)
 pygame.time.set_timer(UFOSPAWN, 1000,loops=1)
 pygame.time.set_timer(STARUPDATE, 1000) 
 pygame.time.set_timer(BOMBIMAGESWAP, 100)
@@ -56,6 +58,14 @@ class MONSTER(object):
 class RED(MONSTER):
     def __init__(self, movespeed, intital_location):
         super(RED, self).__init__(pygame.image.load('graphics\\red.png').convert_alpha(), movespeed, intital_location, 1)    
+
+class GREEN(MONSTER):
+    def __init__(self, movespeed, intital_location):
+        super(GREEN, self).__init__(pygame.image.load('graphics\\green.png').convert_alpha(), movespeed, intital_location, 1)    
+
+class YELLOW(MONSTER):
+    def __init__(self, movespeed, intital_location):
+        super(YELLOW, self).__init__(pygame.image.load('graphics\\yellow.png').convert_alpha(), movespeed, intital_location, 1)    
 
 class UFO:
     def __init__(self):
@@ -85,13 +95,21 @@ class UFO:
         death_sound.play()
         
 class BLOCK:
-    def __init__(self, startingPt, numPerRow, numOfRow):
+    def __init__(self, startingPt, numPerRow, numOfRow, monster_type):
         self.list = list()
-        for y in range(0, numOfRow):
-            for x in range(1,numPerRow+1):
-                self.list.append(RED(5, (startingPt[0]*x, startingPt[1] if self.list.__len__() == 0 else startingPt[1] + y*self.list[0].monster_rect.height)))
-                
-        
+        if monster_type == "RED":
+            for y in range(0, numOfRow):
+                for x in range(1,numPerRow+1):
+                    self.list.append(RED(5, (startingPt[0]*x, startingPt[1] if self.list.__len__() == 0 else startingPt[1] + y*self.list[0].monster_rect.height)))
+        elif monster_type == "YELLOW":       
+              for y in range(0, numOfRow):
+                for x in range(1,numPerRow+1):
+                    self.list.append(YELLOW(5, (startingPt[0]*x, startingPt[1] if self.list.__len__() == 0 else startingPt[1] + y*self.list[0].monster_rect.height)))
+        elif monster_type == "GREEN":       
+              for y in range(0, numOfRow):
+                for x in range(1,numPerRow+1):
+                    self.list.append(GREEN(5, (startingPt[0]*x, startingPt[1] if self.list.__len__() == 0 else startingPt[1] + y*self.list[0].monster_rect.height)))
+
         for each_mon in self.list:
             screen.blit(each_mon.monster_img, each_mon.monster_rect)
     
@@ -229,10 +247,12 @@ class MAIN:
         self.bg_color_stars = (255,255,255)
         self.player = PLAYER()
         self.star_list = self.create_star_list()
-        self.block_red = BLOCK((width*0.1, length*0.1),5,3)
+        self.block_monster_type = "RED"
+        self.create_block_as_type(self.block_monster_type)
         self.bomb1 = BOMB()
         self.ufo = UFO()
         points = 0
+
 
     def draw_background(self):
         screen.fill(self.bg_color_black)
@@ -246,13 +266,28 @@ class MAIN:
             self.check_bomb_enemy_coliision()
         self.player.blit_elements()
         self.player.blit_crosshair()
-        self.block_red.moveBlock()
-        self.block_red.displayMonsters()
+        self.check_block_death()
+        self.block.moveBlock()
+        self.block.displayMonsters()
         if self.bomb1.finished == False:
             self.bomb1.update_display_bomb()
         if self.ufo.ufo_active == True or self.ufo.ufo_death_display == True:
             self.ufo.blit()
-        
+    
+    def create_block_as_type(self, type): 
+        print("type" + type)
+        if type == "RED":
+           self.block= BLOCK((width*0.1, length*0.1),5,3, "RED")
+           self.block_monster_type = "RED"
+           return
+        elif type == "YELLOW":
+           self.block=  BLOCK((width*0.1, length*0.1),5,3, "YELLOW")
+           self.block_monster_type = "YELLOW"
+           return
+        elif type == "GREEN":
+            self.block=  BLOCK((width*0.1, length*0.1),5,3, "GREEN")
+            self.block_monster_type = "GREEN"
+            return
     def update_crosshair_movement(self):
         mousex = pygame.mouse.get_pos()[0]
         mousey = pygame.mouse.get_pos()[1]
@@ -285,9 +320,9 @@ class MAIN:
         mousey = pygame.mouse.get_pos()[1]
         mousex = pygame.math.clamp(mousex,0,width) 
         mousey = pygame.math.clamp(mousey,0,length) 
-        for x in self.block_red.list:
+        for x in self.block.list:
             if x.monster_rect.collidepoint((mousex, mousey)) == True:
-                self.block_red.remove_monster(x)
+                self.block.remove_monster(x)
         if self.bomb1.bomb_rect.collidepoint(mousex, mousey) and self.bomb1.finished == False:
             self.bomb1.explode()
         if self.ufo.ufo_rect.collidepoint((mousex, mousey)) == True and self.ufo.ufo_active == True:
@@ -296,12 +331,15 @@ class MAIN:
 
     def check_bomb_enemy_coliision(self):
         if self.bomb1.exploded == True and self.bomb1.finished == False:
-            for x in self.block_red.list:
+            for x in self.block.list:
                 if self.bomb1.bomb_rect.colliderect(x.monster_rect) == True:
-                    self.block_red.remove_monster(x)
+                    self.block.remove_monster(x)
         if self.bomb1.exploded == True and self.bomb1.finished == False:
             if self.bomb1.bomb_rect.colliderect(self.ufo.ufo_rect) and self.ufo.ufo_active == True:
                 self.ufo.ufo_collision()
+    def check_block_death(self): 
+        if (self.block.list.__len__() == 0):
+            pygame.event.post(BLOCKDEAD_EVENT)
 class GameOver:
     def __init__(self):
         self.text_color = (255,0,0)
@@ -390,7 +428,14 @@ while True:
         else:
             if event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
                 pygame.event.post(GAMERESTART_EVENT)
-
+        if event.type == BLOCKDEAD: 
+            print(main_game.block_monster_type)
+            if main_game.block_monster_type == "RED":
+                main_game.create_block_as_type("YELLOW")
+            elif main_game.block_monster_type == "YELLOW":
+                main_game.create_block_as_type("GREEN")
+            elif main_game.block_monster_type == "GREEN":
+                main_game.create_block_as_type("RED")
 
     main_game.draw_background()
 
