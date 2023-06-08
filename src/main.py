@@ -7,11 +7,11 @@ pygame.mixer.pre_init(44100,-16,2,512)
 pygame.init()
 pygame.mixer.init()
 
-machinegun_sound = pygame.mixer.Sound("audio\\machinegun.mp3")
-background_sound = pygame.mixer.Sound("audio\\music.wav")
-death_sound = pygame.mixer.Sound("audio\death.wav")
-bomb_tick = pygame.mixer.Sound("audio\\bombtick.wav")
-bomb_explosion = pygame.mixer.Sound("audio\\bombexplosion.wav")
+machinegun_sound = pygame.mixer.Sound("audio/machinegun.mp3")
+background_sound = pygame.mixer.Sound("audio/music.wav")
+death_sound = pygame.mixer.Sound("audio/death.wav")
+bomb_tick = pygame.mixer.Sound("audio/bombtick.wav")
+bomb_explosion = pygame.mixer.Sound("audio/bombexplosion.wav")
 background_sound.play(loops = -1)
 background_sound.set_volume(0.5)
 mouse_pressed = pygame.mouse.get_pressed()[0]
@@ -40,7 +40,7 @@ BLOCKDEAD_EVENT = pygame.event.Event(BLOCKDEAD)
 pygame.time.set_timer(UFOSPAWN, 1000,loops=1)
 pygame.time.set_timer(STARUPDATE, 1000) 
 pygame.time.set_timer(BOMBIMAGESWAP, 100)
-font_path = 'fonts//ARCADECLASSIC.ttf'
+font_path = "fonts/ARCADECLASSIC.TTF"
 size = int(length*0.1)
 arcade_font = pygame.font.Font(font_path, size)
 points = 0
@@ -57,20 +57,20 @@ class MONSTER(object):
     
 class RED(MONSTER):
     def __init__(self, movespeed, intital_location):
-        super(RED, self).__init__(pygame.image.load('graphics\\red.png').convert_alpha(), movespeed, intital_location, 1)    
+        super(RED, self).__init__(pygame.image.load('graphics/red.png').convert_alpha(), movespeed, intital_location, 1)    
 
 class GREEN(MONSTER):
     def __init__(self, movespeed, intital_location):
-        super(GREEN, self).__init__(pygame.image.load('graphics\\green.png').convert_alpha(), movespeed, intital_location, 1)    
+        super(GREEN, self).__init__(pygame.image.load('graphics/green.png').convert_alpha(), movespeed, intital_location, 1)    
 
 class YELLOW(MONSTER):
     def __init__(self, movespeed, intital_location):
-        super(YELLOW, self).__init__(pygame.image.load('graphics\\yellow.png').convert_alpha(), movespeed, intital_location, 1)    
+        super(YELLOW, self).__init__(pygame.image.load('graphics/yellow.png').convert_alpha(), movespeed, intital_location, 1)    
 
 class UFO:
     def __init__(self):
-        self.ufo_img = pygame.transform.scale(pygame.image.load("graphics\\ufo.png"), (100,40))
-        self.ufo_death = pygame.transform.scale(pygame.image.load("graphics\\ufodeath.png"), (75,90))
+        self.ufo_img = pygame.transform.scale(pygame.image.load("graphics/ufo.png"), (100,40))
+        self.ufo_death = pygame.transform.scale(pygame.image.load("graphics/ufodeath.png"), (75,90))
         self.ufo_rect = self.ufo_img.get_rect()
         self.ufo_rect_death = self.ufo_death.get_rect()
         self.ufo_rect.center = (random.randint(0,width), random.randint(0,length))
@@ -146,8 +146,8 @@ class BLOCK:
 
 class BOMB:
     def __init__(self):
-        self.bomb_red = pygame.image.load("graphics\\bomb.png").convert_alpha()
-        self.bomb_white = pygame.image.load("graphics\\bombwhite.png").convert_alpha()
+        self.bomb_red = pygame.image.load("graphics/bomb.png").convert_alpha()
+        self.bomb_white = pygame.image.load("graphics/bombwhite.png").convert_alpha()
         self.bomb_surface = self.bomb_red
         self.bomb_rect = self.bomb_surface.get_rect()
         self.bomb_dx = 1
@@ -202,10 +202,10 @@ class BOMB:
 
 class PLAYER:
     def __init__(self):
-        self.player_img = pygame.image.load('graphics\\player.png').convert_alpha()
+        self.player_img = pygame.image.load('graphics/player.png').convert_alpha()
         self.player1_rect = self.player_img.get_rect()
         self.player2_rect = self.player_img.get_rect()
-        self.crosshair_img = pygame.image.load('graphics\\crosshair.png').convert_alpha()
+        self.crosshair_img = pygame.image.load('graphics/crosshair.png').convert_alpha()
         self.crosshair_rect = self.crosshair_img.get_rect()
         self.player1_rect.bottomleft = (width*0.05, length)
         self.player2_rect.bottomright = (width*0.95, length)
