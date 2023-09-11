@@ -2,6 +2,7 @@
 This is my Space Invader Frenzy Clone in Python using pygame-ce, looking forward to publishing a more 
 polished version for you can play it directly via exe. 
 
+![image](https://github.com/notbeckhamster/SpaceInvaderFrenzyPython/assets/98675822/882cf9a9-8324-4dd8-9ead-9de0a0200845)
 
 Sources/References:
 pygame-ce is the main python library I used
