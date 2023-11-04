@@ -1,0 +1,6 @@
+Refernce for running the venv and installing pygame for Ubuntu 23.04: 
+python3 -m venv SpaceInvaderFrenzyPython/venv
+source venv/bin/activate
+Install pygame-ce
+pip3 install pygame-ce
+deactivate
